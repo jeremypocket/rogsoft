@@ -3,7 +3,7 @@
 # build script for rogsoft project
 
 MODULE="virtualhere"
-VERSION="1.0"
+VERSION="1.2"
 TITLE="virtualhere"
 DESCRIPTION="usb over ip"
 AUTHOR="jeremy"

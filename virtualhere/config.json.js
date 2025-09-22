@@ -1,6 +1,6 @@
 {
-"version":"1.0",
-"md5":"647f10d3b6c85ab44aff4caae7d2ac71",
+"version":"1.2",
+"md5":"MD5",
 "home_url":"Module_virtualhere.asp",
 "title":"virtualhere",
 "description":"usb over ip",
@@ -8,5 +8,5 @@
 "author":"jeremy",
 "link":"",
 "changelog":"",
-"build_date":"2024-11-08_12:06:44"
+"build_date":"2025-09-22_13:03:34"
 }
