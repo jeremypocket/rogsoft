@@ -2,7 +2,7 @@
 
 # build script for rogsoft project
 MODULE="fixit"
-VERSION="1.5"
+VERSION="1.6"
 TITLE="安全检查"
 DESCRIPTION="检测软件中心重要文件是否被篡改，如果检测到恶意篡改，将其修复"
 HOME_URL="Module_fixit.asp"
@@ -12,52 +12,35 @@ AUTHOR="sadog"
 # Check and include base
 DIR="$( cd "$( dirname "$BASH_SOURCE[0]" )" && pwd )"
 ME=$(basename "$0")
+PLATFORM=$(echo "${ME}" | awk -F"." '{print $1}' | sed 's/build_//g')
+
+if [ "${ME}" = "build.sh" ];then
+	echo "build error!"
+	exit 1
+fi
 
 do_build() {
-	rm -f ${MODULE}.tar.gz
-
-	if [ "$ME" = "build_mtk.sh" ];then
-		echo "build fixit for mtk"
-		rm -rf ./build
-		mkdir -p ./build
-		cp -rf ./fixit ./build/
-		cd ./build
-		
-		rm -rf fixit/bin
-		mv -f fixit/bin-mtk fixit/bin/
-		rm -rf fixit/scripts
-		mv -f fixit/scripts-mtk fixit/scripts
-
-		echo mtk >fixit/.valid
-		
-		tar -zcf fixit.tar.gz fixit
-		if [ "$?" = "0" ];then
-			echo "build success!"
-			mv fixit.tar.gz ..
-		fi
-		cd ..
-		rm -rf ./build
-	elif [ "$ME" = "build.sh" ];then
-		echo "build fixit for hnd"
-		rm -rf ./build
-		mkdir -p ./build
-		cp -rf ./fixit ./build/
-		cd ./build
-		
-		rm -rf fixit/bin-mtk
-		rm -rf fixit/scripts-mtk
-
-		echo hnd >fixit/.valid
-		
-		tar -zcf fixit.tar.gz fixit
-		if [ "$?" = "0" ];then
-			echo "build success!"
-			mv fixit.tar.gz ..
-		fi
-		cd ..
-		rm -rf ./build
+	#-----------------------------------------------------------------------
+	# prepare to build
+	rm -rf ${DIR}/${MODULE}.tar.gz
+	rm -rf ${DIR}/build && mkdir -p ${DIR}/build
+	cp -rf ${DIR}/${MODULE} ${DIR}/build/ && cd ${DIR}/build
+	echo "build ${MODULE} for ${PLATFORM}"
+	echo ${PLATFORM} >${DIR}/build/${MODULE}/.valid
+	# different architecture of binary/script go to coresponding folder
+	cp -rf ${DIR}/build/${MODULE}/bin-${PLATFORM} ${DIR}/build/${MODULE}/bin/
+	cp -rf ${DIR}/build/${MODULE}/scripts-${PLATFORM} ${DIR}/build/${MODULE}/scripts
+	# remove extra folder
+	rm -rf ${DIR}/build/${MODULE}/bin-*
+	rm -rf ${DIR}/build/${MODULE}/scripts-*
+	# make tar
+	tar -zcf ${MODULE}.tar.gz ${MODULE}
+	if [ "$?" = "0" ];then
+		echo "build success!"
+		mv ${DIR}/build/${MODULE}.tar.gz ${DIR}
 	fi
-	
+	cd ${DIR} && rm -rf ${DIR}/build
+	#-----------------------------------------------------------------------
 	# add version to the package
 	echo ${VERSION} >${MODULE}/version
 	md5value=$(md5sum ${MODULE}.tar.gz | tr " " "\n" | sed -n 1p)
@@ -89,6 +72,6 @@ do_build() {
 
 
 # do build
-cd $DIR
+cd ${DIR}
 do_build
 

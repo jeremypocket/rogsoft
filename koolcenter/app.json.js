@@ -102,17 +102,17 @@
         }, 
         {
             "author": "sadog", 
-            "build_date": "2024-07-25_10:56:39", 
+            "build_date": "2024-12-26_00:33:54", 
             "changelog": "", 
             "description": "轻松安装/管理Entware环境", 
             "home_url": "Module_entware.asp", 
             "link": "", 
-            "md5": "1d8158f988a4dcb5be0e5e1754459a82", 
+            "md5": "e781c307b96b9aa2f68a26df818aa0d2", 
             "name": "entware", 
             "tags": "Entware USB", 
             "tar_url": "entware/entware.tar.gz", 
             "title": "Entware", 
-            "version": "1.5"
+            "version": "1.7.3"
         }, 
         {
             "author": "sadog", 
@@ -127,6 +127,20 @@
             "tar_url": "fastd1ck/fastd1ck.tar.gz", 
             "title": "迅雷快鸟", 
             "version": "1.6"
+        }, 
+        {
+            "author": "sadog", 
+            "build_date": "2025-02-18_15:13:02", 
+            "changelog": "", 
+            "description": "检测软件中心重要文件是否被篡改，如果检测到恶意篡改，将其修复", 
+            "home_url": "Module_fixit.asp", 
+            "link": "", 
+            "md5": "823a230f2829c667d0a12c74489b0d9b", 
+            "name": "fixit", 
+            "tags": "系统 工具", 
+            "tar_url": "fixit/fixit.tar.gz", 
+            "title": "安全检查", 
+            "version": "1.5"
         }, 
         {
             "author": "clang", 
@@ -270,17 +284,17 @@
         }, 
         {
             "author": "sadog", 
-            "build_date": "2024-05-03_19:00:50", 
+            "build_date": "2025-02-18_15:33:54", 
             "changelog": "", 
             "description": "一些小功能的插件", 
             "home_url": "Module_rog.asp", 
             "link": "", 
-            "md5": "d38c3c349186d616e63d182d91cec594", 
+            "md5": "77e050951ee7f2ec7957c22396fadfc5", 
             "name": "rog", 
             "tags": "系统 工具", 
             "tar_url": "rog/rog.tar.gz", 
             "title": "ROG工具箱", 
-            "version": "5.9"
+            "version": "5.9.7"
         }, 
         {
             "author": "囍冯总囍", 
@@ -382,17 +396,17 @@
         }, 
         {
             "author": "sadog", 
-            "build_date": "2023-06-07_22:11:53", 
+            "build_date": "2025-02-18_15:55:40", 
             "changelog": "", 
             "description": "基于wiregurad协议的零配置内网穿透安全组网工具！", 
             "home_url": "Module_tailscale.asp", 
             "link": "", 
-            "md5": "fc2394d58ddac363969f149961c0139e", 
+            "md5": "c7efd35f8679668af4189f80b38c1a0a", 
             "name": "tailscale", 
             "tags": "穿透 VPN", 
             "tar_url": "tailscale/tailscale.tar.gz", 
             "title": "Tailscale", 
-            "version": "1.9.2"
+            "version": "2.0.3"
         }, 
         {
             "author": "sadog", 
@@ -424,28 +438,28 @@
         }, 
         {
             "author": "sadog", 
-            "build_date": "2024-08-22_17:53:59", 
+            "build_date": "2024-12-26_00:03:09", 
             "changelog": "", 
             "description": "wifi boost: 路由器WiFi功率增强，增加信号覆盖范围。", 
             "home_url": "Module_wifiboost.asp", 
             "link": "", 
-            "md5": "9dcdac2f4bc27b78205d3dea7cf3f5af", 
+            "md5": "1dc2ac9f7776581bb02dcc43b7edf40f", 
             "name": "wifiboost", 
             "port": "8083", 
             "server": "42.192.18.234", 
             "tags": "系统 工具", 
             "tar_url": "wifiboost/wifiboost.tar.gz", 
             "title": "wifi boost", 
-            "version": "4.9.5"
+            "version": "4.9.6"
         }, 
         {
             "author": "sadog", 
-            "build_date": "2024-05-05_11:30:35", 
+            "build_date": "2025-02-13_00:12:49", 
             "changelog": "", 
             "description": "ZeroTier 内网穿透", 
             "home_url": "Module_zerotier.asp", 
             "link": "", 
-            "md5": "aeee29196bf9956c56abee976acbfc19", 
+            "md5": "542fd5c1205fd8ed2ac2616bc6ddfe59", 
             "name": "zerotier", 
             "tags": "穿透 VPN", 
             "tar_url": "zerotier/zerotier.tar.gz", 
@@ -454,7 +468,7 @@
         }
     ], 
     "home_url": "https://raw.githubusercontent.com/koolshare/koolshare.github.io/master", 
-    "md5": "ef9482bf124347c89e74463453aff002", 
+    "md5": "14be470ea66020fbcab972472e663a2c", 
     "tar_url": "koolcenter/softcenter.tar.gz", 
-    "version": "1.9.34"
+    "version": "1.9.39"
 }

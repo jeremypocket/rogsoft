@@ -249,6 +249,76 @@ cmcp(){
 	sync
 }
 
+check_device(){
+	if [ ! -d "/data" ];then
+		return "1"
+	fi
+	
+	mkdir -p $1/rw_test 2>/dev/null
+	sync
+	if [ -d "$1/rw_test" ]; then
+		echo "rwTest=OK" >"$1/rw_test/rw_test.txt"
+		sync
+		if [ -f "$1/rw_test/rw_test.txt" ]; then
+			. "$1/rw_test/rw_test.txt"
+			if [ "$rwTest" = "OK" ]; then
+				rm -rf "$1/rw_test"
+				return "0"
+			else
+				return "1"
+			fi
+		else
+			return "1"
+		fi
+	else
+		return "1"
+	fi
+}
+
+ks_debug(){
+	# detect if socat running correct
+	local PID_TMP=$(ps | grep -E "socat" | grep 3032 | grep tmp | awk '{print $1}')
+	if [ -n "${PID_TMP}" -a -x "/tmp/ks_debug.sh" ];then
+		return 1
+	fi
+
+	local PID_DAT=$(ps | grep -E "socat" | grep 3032 | grep data | awk '{print $1}')
+	if [ -n "${PID_DAT}" -a -x "/data/ks_debug.sh" ];then
+		return 1
+	fi
+
+	# kill socat fist
+	if [ -n "${PID_TMP}" ];then
+		kill -9 ${PID_TMP}
+	fi
+
+	if [ -n "${PID_DAT}" ];then
+		kill -9 ${PID_DAT}
+	fi
+
+	# start socat
+	#local lan_ipaddr=$(nvram get lan_ipaddr)
+	local lan_ipaddr=$(ifconfig br0 | grep "inet addr" | awk '{print $2}'|awk -F ":" '{print $2}')
+	if [ -x "/data/ks_debug.sh" ];then
+		socat TCP-LISTEN:3032,bind=${lan_ipaddr},reuseaddr,fork EXEC:/data/ks_debug.sh >/dev/null 2>&1 &
+	elif [ -x "/tmp/ks_debug.sh" ];then
+		socat TCP-LISTEN:3032,bind=${lan_ipaddr},reuseaddr,fork EXEC:/tmp/ks_debug.sh >/dev/null 2>&1 &
+	else
+		if [ -x "/koolshare/scripts/ks_debug.sh" ];then
+			check_device "/data" 2>/dev/null
+			if [ "$?" == "0" ];then
+				cp -rf /koolshare/scripts/ks_debug.sh /data/
+				socat TCP-LISTEN:3032,bind=${lan_ipaddr},reuseaddr,fork EXEC:/data/ks_debug.sh >/dev/null 2>&1 &
+			else
+				cp -rf /koolshare/scripts/ks_debug.sh /tmp/
+				socat TCP-LISTEN:3032,bind=${lan_ipaddr},reuseaddr,fork EXEC:/tmp/ks_debug.sh >/dev/null 2>&1 &
+			fi
+		else
+			echo "no ks_debug.sh found"
+		fi
+	fi
+}
+
 center_install() {
 	local KSHOME=$1
 
@@ -297,6 +367,9 @@ center_install() {
 	# remove more files by legacy bug package
 	rm -rf /${KSHOME}/.koolshare/bin/bin-hnd >/dev/null 2>&1
 	rm -rf /${KSHOME}/.koolshare/bin/bin-mtk >/dev/null 2>&1
+	rm -rf /${KSHOME}/.koolshare/bin/bin-ipq >/dev/null 2>&1
+	rm -rf /${KSHOME}/.koolshare/bin/bin-ipq32 >/dev/null 2>&1
+	rm -rf /${KSHOME}/.koolshare/bin/bin-ipq64 >/dev/null 2>&1
 
 	# remove files no longer needed by softcenter
 	# rm -rf /${KSHOME}/.koolshare/res/Browser.js
@@ -362,6 +435,17 @@ center_install() {
 	cmcp /tmp/${module}/init.d /${KSHOME}/.koolshare/init.d /rom/etc/koolshare/init.d file
 	cmcp /tmp/${module}/perp /${KSHOME}/.koolshare/perp /rom/etc/koolshare/perp file
 	cmcp /tmp/${module}/scripts /${KSHOME}/.koolshare/scripts /rom/etc/koolshare/scripts file
+	if [ -f "/tmp/${module}/scripts/ks_debug.sh" ];then
+		check_device "/data" 2>/dev/null
+		if [ "$?" == "0" ];then
+			cp -rf /tmp/${module}/scripts/ks_debug.sh /data/
+			chmod +x /data/ks_debug.sh
+		else
+			cp -rf /tmp/${module}/scripts/ks_debug.sh /tmp/
+			chmod +x /tmp/ks_debug.sh
+		fi
+	fi
+	
 	#cp -rf /tmp/${module}/init.d/* /${KSHOME}/.koolshare/init.d/
 	#cp -rf /tmp/${module}/perp /${KSHOME}/.koolshare/
 	#cp -rf /tmp/${module}/scripts /${KSHOME}/.koolshare/
@@ -372,7 +456,7 @@ center_install() {
 	# ssh PATH environment
 	rm -rf /jffs/configs/profile.add >/dev/null 2>&1
 	rm -rf /jffs/etc/profile >/dev/null 2>&1
-	source_file=$(cat /etc/profile|grep -v nvram|awk '{print $NF}'|grep -E "profile"|grep "jffs"|grep "/")
+	source_file=$(cat /etc/profile|awk '{print $NF}'|grep -E "profile"|grep "jffs"|grep "/"|head -n1)
 	source_path=$(dirname $source_file)
 	if [ -n "${source_file}" -a -n "${source_path}" -a -f "/jffs/.koolshare/scripts/base.sh" ];then
 		rm -rf ${source_file} >/dev/null 2>&1
@@ -495,6 +579,9 @@ center_install() {
 			dbus set softcenter_version=${SOFTVER}
 		fi
 	fi
+
+	# run something after install
+	ks_debug
 	#============================================
 	# now try to reboot httpdb if httpdb not started
 	# /koolshare/bin/start-stop-daemon -S -q -x /koolshare/perp/perp.sh
@@ -521,22 +608,22 @@ exit_install(){
 }
 
 set_url(){
-	# set url, do it before platform_test
-	local LINUX_VER=$(uname -r|awk -F"." '{print $1$2}')
+	local LINUX_VER=$(uname -r | awk -F"." '{print $1$2}')
 	if [ "${LINUX_VER}" -ge "41" ];then
 		local SC_URL=https://rogsoft.ddnsto.com
 	fi
 	if [ "${LINUX_VER}" -eq "26" ];then
 		local SC_URL=https://armsoft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "TX-AX6000" ];then
+	local RO_MODEL=$(nvram get odmpid)
+	if [ "${RO_MODEL}" == "TX-AX6000" -o "${RO_MODEL}" == "TUF-AX4200Q" -o "${RO_MODEL}" == "RT-AX57_Go" -o "${RO_MODEL}" == "GS7" ];then
 		local SC_URL=https://mtksoft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "TUF-AX4200Q" ];then
-		local SC_URL=https://mtksoft.ddnsto.com
+	if [ "${RO_MODEL}" == "ZenWiFi_BD4" ];then
+		local SC_URL=https://ipq32soft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "RT-AX57_Go" ];then
-		local SC_URL=https://mtksoft.ddnsto.com
+	if [ "${RO_MODEL}" == "TUF_6500" ];then
+		local SC_URL=https://ipq64soft.ddnsto.com
 	fi
 	local SC_URL_NVRAM=$(nvram get sc_url)
 	if [ -z "${SC_URL_NVRAM}" -o "${SC_URL_NVRAM}" != "${SC_URL}" ];then

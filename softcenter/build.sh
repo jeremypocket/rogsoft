@@ -1,53 +1,38 @@
 #!/bin/bash
 # build script for rogsoft project
+MODULE="softcenter"
+VERSION=1.9.22
+
+# Check and include base
 DIR="$( cd "$( dirname "$BASH_SOURCE[0]" )" && pwd )"
 ME=$(basename "$0")
-VERSION=1.9.13
+PLATFORM=$(echo "${ME}" | awk -F"." '{print $1}' | sed 's/build_//g')
 
-echo $VERSION > ./softcenter/.soft_ver
+if [ "${ME}" = "build.sh" ];then
+	echo "build error!"
+	exit 1
+fi
+
+echo ${VERSION} > ${DIR}/softcenter/.soft_ver
 
 echo build version: ${VERSION}
-rm -f softcenter.tar.gz
+rm -f ${DIR}/softcenter.tar.gz
 
 python ./gen_install.py stage1
 
-chmod 755 ./softcenter/scripts/ks_app_install.sh
-
 # ----------------------------
-# for mtk
-if [ "$ME" = "build.sh" ];then
-	echo "build softcenter for hnd"
-	rm -rf $DIR/build
-	mkdir -p $DIR/build
-	cp -rf ./softcenter ./build/
-	cd ./build
-	cp -rf softcenter/bin-hnd/* softcenter/bin/
-	rm -rf softcenter/bin-hnd
-	rm -rf softcenter/bin-mtk
-	tar -zcf softcenter.tar.gz softcenter
-	if [ "$?" = "0" ];then
-		echo "build hnd success!"
-		mv softcenter.tar.gz ..
-	fi
-	cd ..
-	rm -rf ./build
-elif [ "$ME" = "build_mtk.sh" ];then
-	echo "build softcenter for mtk"
-	rm -rf $DIR/build
-	mkdir -p $DIR/build
-	cp -rf ./softcenter ./build/
-	cd ./build
-	cp -rf softcenter/bin-mtk/* softcenter/bin/
-	rm -rf softcenter/bin-mtk
-	rm -rf softcenter/bin-hnd
-	tar -zcf softcenter.tar.gz softcenter
-	if [ "$?" = "0" ];then
-		echo "build mtk success!"
-		mv softcenter.tar.gz ..
-	fi
-	cd ..
-	rm -rf ./build
+rm -rf ${DIR}/build && mkdir -p ${DIR}/build
+cp -rf ${DIR}/softcenter ${DIR}/build/ && cd ${DIR}/build
+echo "build softcenter for ${PLATFORM}"
+echo ${PLATFORM} >${DIR}/build/softcenter/.valid
+cp -rf softcenter/bin-${PLATFORM}/* softcenter/bin/
+rm -rf ${DIR}/build/softcenter/bin-*
+tar -zcf softcenter.tar.gz softcenter
+if [ "$?" = "0" ];then
+	echo "build success!"
+	mv ${DIR}/build/softcenter.tar.gz ${DIR}
 fi
+cd ${DIR} && rm -rf ${DIR}/build
 # ----------------------------
 
 md5value=$(md5sum softcenter.tar.gz|awk '{print $1}')

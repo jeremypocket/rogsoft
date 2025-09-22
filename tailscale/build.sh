@@ -12,50 +12,41 @@ AUTHOR="sadog"
 # Check and include base
 DIR="$( cd "$( dirname "$BASH_SOURCE[0]" )" && pwd )"
 ME=$(basename "$0")
+PLATFORM=$(echo "${ME}" | awk -F"." '{print $1}' | sed 's/build_//g')
+
+if [ "${ME}" = "build.sh" ];then
+	echo "build error!"
+	exit 1
+fi
+
+if [ "${PLATFORM}" = "mtk" -o "${PLATFORM}" = "ipq64" ];then
+	ARCH=64
+elif [ "${PLATFORM}" = "hnd" -o "${PLATFORM}" = "ipq32" ];then
+	ARCH=32
+fi
 
 do_build() {
-	rm -f ${MODULE}.tar.gz
-
-	if [ -z "$TAGS" ];then
-		TAGS="其它"
+	#-----------------------------------------------------------------------
+	# prepare to build
+	rm -rf ${DIR}/${MODULE}.tar.gz
+	rm -rf ${DIR}/build && mkdir -p ${DIR}/build
+	cp -rf ${DIR}/${MODULE} ${DIR}/build/ && cd ${DIR}/build
+	echo "build ${MODULE} for ${PLATFORM}"
+	echo ${PLATFORM} >${DIR}/build/${MODULE}/.valid
+	# different architecture of binary/script go to coresponding folder
+	cp -rf ${DIR}/build/${MODULE}/bin_${ARCH} ${DIR}/build/${MODULE}/bin/
+	cp -rf ${DIR}/build/${MODULE}/scripts-${PLATFORM} ${DIR}/build/${MODULE}/scripts
+	# remove extra folder
+	rm -rf ${DIR}/build/${MODULE}/bin_*
+	rm -rf ${DIR}/build/${MODULE}/scripts-*
+	# make tar
+	tar -zcf ${MODULE}.tar.gz ${MODULE}
+	if [ "$?" = "0" ];then
+		echo "build success!"
+		mv ${DIR}/build/${MODULE}.tar.gz ${DIR}
 	fi
-
-	if [ "$ME" = "build_mtk.sh" ];then
-		echo "build tailscale for mtk"
-		rm -rf ./build
-		mkdir -p ./build
-		cp -rf ./tailscale ./build/
-		cd ./build
-		echo "mtk" >tailscale/.valid
-		rm -rf tailscale/bin
-		mv -f tailscale/bin-mtk tailscale/bin/
-		rm -rf tailscale/scripts
-		mv -f tailscale/scripts-mtk tailscale/scripts/
-		tar -zcf tailscale.tar.gz tailscale
-		if [ "$?" = "0" ];then
-			echo "build success!"
-			mv tailscale.tar.gz ..
-		fi
-		cd ..
-		rm -rf ./build
-	elif [ "$ME" = "build.sh" ];then
-		echo "build tailscale for hnd"
-		rm -rf ./build
-		mkdir -p ./build
-		cp -rf ./tailscale ./build/
-		cd ./build
-		echo "hnd" >tailscale/.valid
-		rm -rf tailscale/bin-mtk
-		rm -rf tailscale/scripts-mtk
-		tar -zcf tailscale.tar.gz tailscale
-		if [ "$?" = "0" ];then
-			echo "build success!"
-			mv tailscale.tar.gz ..
-		fi
-		cd ..
-		rm -rf ./build
-	fi
-	
+	cd ${DIR} && rm -rf ${DIR}/build
+	#-----------------------------------------------------------------------
 	# add version to the package
 	echo ${VERSION} >${MODULE}/version
 	md5value=$(md5sum ${MODULE}.tar.gz | tr " " "\n" | sed -n 1p)

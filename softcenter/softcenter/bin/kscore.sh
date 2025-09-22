@@ -7,18 +7,18 @@ detect(){
 		/usr/bin/jffsinit.sh
 	fi
 
-	chmod 755 /koolshare/bin/*
-	chmod 755 /koolshare/init.d/*
-	chmod 755 /koolshare/perp/*
-	chmod 755 /koolshare/perp/.boot/*
-	chmod 755 /koolshare/perp/.control/*
-	chmod 755 /koolshare/perp/httpdb/*
-	chmod 755 /koolshare/scripts/*
+	chmod 755 /koolshare/bin/* >/dev/null 2>&1
+	chmod 755 /koolshare/init.d/* >/dev/null 2>&1
+	chmod 755 /koolshare/perp/* >/dev/null 2>&1
+	chmod 755 /koolshare/perp/.boot/* >/dev/null 2>&1
+	chmod 755 /koolshare/perp/.control/* >/dev/null 2>&1
+	chmod 755 /koolshare/perp/httpdb/* >/dev/null 2>&1
+	chmod 755 /koolshare/scripts/* >/dev/null 2>&1
 
 	# ssh PATH environment
 	rm -rf /jffs/configs/profile.add >/dev/null 2>&1
 	rm -rf /jffs/etc/profile >/dev/null 2>&1
-	source_file=$(cat /etc/profile|grep -v nvram|awk '{print $NF}'|grep -E "profile"|grep "jffs"|grep "/")
+	source_file=$(cat /etc/profile|awk '{print $NF}'|grep -E "profile"|grep "jffs"|grep "/"|head -n1)
 	source_path=$(dirname $source_file)
 	if [ -n "${source_file}" -a -n "${source_path}" ];then
 		rm -rf ${source_file} >/dev/null 2>&1
@@ -119,7 +119,7 @@ check_start(){
 		[ "$STARTCOMAND6" == "0" ] && sed -i '1a /koolshare/bin/ks-unmount.sh $1' /jffs/scripts/unmount
 	fi
 
-	chmod +x /jffs/scripts/*
+	chmod +x /jffs/scripts/* >/dev/null 2>&1
 	sync
 }
 
@@ -141,22 +141,22 @@ set_value(){
 }
 
 set_url(){
-	# set url
-	local LINUX_VER=$(uname -r|awk -F"." '{print $1$2}')
+	local LINUX_VER=$(uname -r | awk -F"." '{print $1$2}')
 	if [ "${LINUX_VER}" -ge "41" ];then
 		local SC_URL=https://rogsoft.ddnsto.com
 	fi
 	if [ "${LINUX_VER}" -eq "26" ];then
 		local SC_URL=https://armsoft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "TX-AX6000" ];then
+	local RO_MODEL=$(nvram get odmpid)
+	if [ "${RO_MODEL}" == "TX-AX6000" -o "${RO_MODEL}" == "TUF-AX4200Q" -o "${RO_MODEL}" == "RT-AX57_Go" -o "${RO_MODEL}" == "GS7" ];then
 		local SC_URL=https://mtksoft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "TUF-AX4200Q" ];then
-		local SC_URL=https://mtksoft.ddnsto.com
+	if [ "${RO_MODEL}" == "ZenWiFi_BD4" ];then
+		local SC_URL=https://ipq32soft.ddnsto.com
 	fi
-	if [ "${LINUX_VER}" -eq "54" -a "$(nvram get odmpid)" == "RT-AX57_Go" ];then
-		local SC_URL=https://mtksoft.ddnsto.com
+	if [ "${RO_MODEL}" == "TUF_6500" ];then
+		local SC_URL=https://ipq64soft.ddnsto.com
 	fi
 	local SC_URL_NVRAM=$(nvram get sc_url)
 	if [ -z "${SC_URL_NVRAM}" -o "${SC_URL_NVRAM}" != "${SC_URL}" ];then
